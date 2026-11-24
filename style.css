@@ -1,0 +1,887 @@
+:root {
+    --bg-color: #f4f7f6;
+    --text-color: #333333;
+    --card-bg: #ffffff;
+    --primary-color: #4a90e2;
+    --primary-hover: #357abd;
+    --border-color: #e1e8ed;
+    
+    --success-bg: #e8f5e9;
+    --success-text: #2e7d32;
+    
+    --error-bg: #ffebee;
+    --error-text: #c62828;
+    
+    --warning-bg: #fff3e0;
+    --warning-text: #e65100;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 30px 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+h1 {
+    font-size: 28px;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #444;
+}
+
+.upload-section {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+    .upload-section {
+        flex-direction: column;
+    }
+}
+
+.upload-card {
+    flex: 1;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.card-icon {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    margin: 15px 0;
+}
+
+.input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.text-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.file-input-wrapper {
+    margin: 15px 0;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 15px;
+    border: 2px dashed #a0b2c0;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #fafbfc;
+    transition: background-color 0.2s;
+}
+
+input[type="file"]:hover {
+    background-color: #f0f4f8;
+}
+
+.preview-img {
+    max-width: 100%;
+    max-height: 200px;
+    display: block;
+    margin: 10px auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 15px;
+    color: #666;
+}
+
+.action-section {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+/* 読み取り方式の切り替え */
+.mode-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+.mode-section .mode-title {
+    font-weight: 600;
+}
+
+.mode-section label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+/* 手書きモデル用の位置合わせ画面 */
+.align-section {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.align-section h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.align-help {
+    font-size: 14px;
+    line-height: 1.7;
+    background-color: var(--warning-bg);
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.aligner-card {
+    margin-bottom: 28px;
+}
+
+.aligner-card h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.aligner-ctrl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.aligner-ctrl button {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.aligner-ctrl .rows-input {
+    width: 60px;
+    padding: 4px;
+    font-size: 14px;
+}
+
+.aligner-wrap {
+    width: 100%;
+    max-height: 80vh;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.aligner-canvas {
+    display: block;
+    touch-action: none;
+}
+
+.aligner-preview {
+    margin-top: 10px;
+    overflow-x: auto;
+}
+
+.aligner-status {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #2e7d32;
+}
+
+.aligner-status-warn {
+    color: #c62828;
+}
+
+.aligner-locked {
+    opacity: 0.55;
+    pointer-events: none;
+    position: relative;
+}
+
+.aligner-locked::after {
+    content: "読み取り中は位置合わせを変更できません";
+    position: absolute;
+    top: -2px;
+    right: 0;
+    background: #555;
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    z-index: 2;
+}
+
+.aligner-note {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 30px;
+    box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4);
+    background-color: var(--primary-hover);
+}
+
+button:disabled {
+    background-color: #cccccc;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.global-status {
+    margin-top: 15px;
+    font-weight: 600;
+    font-size: 16px;
+    color: #555;
+}
+
+.result-section {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.diagnostics {
+    background-color: var(--card-bg);
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.diagnostics h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+
+.diag-list {
+    margin: 0 0 12px;
+    padding-left: 20px;
+}
+
+.diag-item {
+    margin-bottom: 4px;
+}
+
+.diagnostics .diag-warn {
+    color: #c62828;
+    font-weight: 600;
+}
+
+.summary {
+    margin-bottom: 20px;
+    font-size: 16px;
+    padding: 15px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.summary-item {
+    font-weight: 600;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+th, td {
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+.result-legend {
+    font-size: 13px;
+    color: #666;
+    margin: -4px 0 16px;
+}
+
+.col-source {
+    width: 90px;
+}
+
+/* 紙(OCR)行とExcel行を1組として横に揃えて比較できるようにする */
+.pair-row td {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.pair-row-paper td {
+    border-bottom: none;
+    padding-top: 14px;
+}
+
+.pair-row-excel td {
+    padding-bottom: 14px;
+}
+
+.pair-even td {
+    background-color: #ffffff;
+}
+
+.pair-odd td {
+    background-color: #f8fafc;
+}
+
+.pair-row-excel td {
+    border-bottom: 2px solid var(--border-color);
+}
+
+.src-label {
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.src-paper {
+    color: var(--primary-color);
+}
+
+.src-excel {
+    color: #888;
+}
+
+/* マスの色: 不一致=赤、読み取りに自信がない=黄色(行の背景色より優先させるため .pair-row を付けている) */
+.pair-row td.cell-mismatch {
+    color: var(--error-text);
+    font-weight: 700;
+    background-color: #ffcdd2;
+    box-shadow: inset 0 0 0 2px #e53935;
+}
+
+.pair-row td.cell-mismatch-uncertain {
+    box-shadow: inset 0 0 0 2px #e53935, inset 0 0 0 5px #fbc02d;
+    cursor: help;
+}
+
+.pair-row td.cell-uncertain {
+    background-color: #fff59d;
+    box-shadow: inset 0 0 0 2px #fbc02d;
+    cursor: help;
+}
+
+.legend-mismatch,
+.legend-uncertain {
+    padding: 0 4px;
+    border-radius: 3px;
+}
+
+.legend-mismatch {
+    background-color: #ffcdd2;
+}
+
+.legend-uncertain {
+    background-color: #fff59d;
+}
+
+.summary-item.status-uncertain {
+    background-color: #fff59d;
+    color: #6d5d00;
+}
+
+/* 写真ごとの見出し行(何枚目・画像名) */
+.group-row td {
+    background-color: #e8eef7;
+    font-weight: 700;
+    padding: 10px 12px;
+    border-top: 2px solid var(--border-color);
+}
+
+.src-sheet {
+    font-size: 11px;
+    font-weight: 400;
+    color: #999;
+}
+
+.judgment-cell {
+    vertical-align: middle;
+}
+
+.judgment {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.mismatch-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.chip-review {
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+}
+
+.chip-hint {
+    background-color: #fff8e1;
+    color: #f9a825;
+}
+
+.chip-hint-ok {
+    background-color: #f1f8e9;
+    color: #689f38;
+}
+
+/* 判定のスタイル */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-match {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+}
+
+.status-mismatch {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+}
+
+.status-error {
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+}
+
+.status-missing {
+    background-color: #f5f5f5;
+    color: #757575;
+}
+/* 照合結果の枠(一番上=確認が必要な行、その下=Day ごと) */
+.result-box {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    background: #fff;
+}
+
+.result-box h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.result-box-check {
+    border: 2px solid #e53935;
+    background: #fffafa;
+}
+
+.result-box-day h3::before {
+    content: "📅 ";
+}
+
+.box-note {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 8px;
+}
+
+.box-ok {
+    color: #2e7d32;
+    font-weight: 600;
+    margin: 4px 0;
+}
+
+.result-box details summary {
+    cursor: pointer;
+    color: #555;
+    font-size: 14px;
+    margin: 8px 0;
+}
+
+.col-image {
+    width: 260px;
+}
+
+.image-cell img {
+    display: block;
+    max-width: 260px;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.no-image {
+    font-size: 12px;
+    color: #999;
+}
+
+/* Excel のシートのような Day のタブ */
+.sheet-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    border-bottom: 2px solid #217346;
+    margin-bottom: 12px;
+}
+
+.sheet-tab {
+    border: 1px solid #c8c8c8;
+    border-bottom: none;
+    background: #f1f1f1;
+    color: #444;
+    padding: 7px 14px;
+    font-size: 14px;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+}
+
+.sheet-tab:hover {
+    background: #e6f2ea;
+}
+
+.sheet-tab.active {
+    background: #fff;
+    color: #217346;
+    font-weight: 700;
+    border-color: #217346;
+    border-width: 2px;
+    margin-bottom: -2px;
+}
+
+.tab-badge {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.tab-badge-check {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+.tab-badge-ok {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.tab-badge-none {
+    background: #eee;
+    color: #888;
+}
+
+/* 「確認が必要な行」の紙・Excel の時刻は大きく */
+.result-box-check .pair-row td:not(.src-label):not(.judgment-cell):not(.image-cell) {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.result-box-check .src-label {
+    font-size: 14px;
+}
+
+/* 写真の選び方(ファイルから選ぶ / コピーして貼り付ける)を横に並べる */
+.pick-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.pick-col {
+    flex: 1 1 180px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.pick-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #445;
+    margin-bottom: 4px;
+}
+
+.pick-col input[type="file"] {
+    flex: 1;
+}
+
+.paste-zone {
+    flex: 1;
+    min-height: 62px;
+    padding: 10px;
+    border: 2px dashed #4a90e2;
+    border-radius: 6px;
+    background-color: #f2f8ff;
+    cursor: text;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+    color: #2b5f9e;
+    outline: none;
+    caret-color: #4a90e2;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.paste-zone::before {
+    content: "ここをクリックして Ctrl+V";
+    font-weight: 600;
+    display: block;
+}
+
+.paste-zone::after {
+    content: "続けて貼ると枚数が増えます";
+    font-size: 12px;
+    color: #667;
+    display: block;
+}
+
+.paste-zone:hover {
+    background-color: #e6f1ff;
+}
+
+.paste-zone:focus {
+    border-style: solid;
+    background-color: #dcecff;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
+}
+
+.paste-zone:focus::before {
+    content: "ここに Ctrl+V で貼り付け";
+}
+
+.paste-zone[data-msg]::before {
+    content: attr(data-msg);
+    color: #2e7d32;
+}
+
+.paste-zone[data-msg]::after {
+    content: "";
+}
+
+.paste-zone.paste-zone-warn {
+    border-color: #c62828;
+    background-color: #fff3f3;
+}
+
+.paste-zone.paste-zone-warn[data-msg]::before {
+    color: #c62828;
+}
+
+.paste-zone.locked {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* 選んだ写真の小さい見本。隅の ✖ で1枚ずつ消せる */
+.thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 14px;
+    justify-content: center;
+    margin: 14px 0 4px;
+}
+
+.thumb {
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.thumb img {
+    display: block;
+    height: 120px;
+    max-width: 180px;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+.thumb-no {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 12px;
+    padding: 1px 6px;
+    border-radius: 0 4px 0 3px;
+}
+
+button.thumb-del {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background-color: #d32f2f;
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    cursor: pointer;
+}
+
+button.thumb-del:hover:not(:disabled) {
+    transform: scale(1.15);
+    background-color: #b71c1c;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.thumbs.locked {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/* 位置合わせの説明(箇条書き)。色の名前は、画面のその色で書く */
+ul.align-help {
+    padding-left: 34px;
+}
+
+ul.align-help li {
+    margin: 2px 0;
+}
+
+.c-red { color: #dc0000; }
+.c-green { color: #008a35; }
+.c-orange { color: #e65100; }
+.c-blue { color: #0046e6; }
+
+/* Excel をリンクから読む欄 */
+.link-zone {
+    flex: 1;
+    padding: 8px;
+    border: 2px dashed #4a90e2;
+    border-radius: 6px;
+    background-color: #f2f8ff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.link-zone .text-input {
+    flex: 1 1 110px;
+    min-width: 0;
+    padding: 6px 8px;
+    font-size: 13px;
+}
+
+button.link-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+button.link-btn:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+}
+
+.link-note {
+    flex: 1 1 100%;
+    font-size: 11.5px;
+    color: #667;
+    line-height: 1.4;
+}
+
+.status.status-error {
+    color: #c62828;
+}

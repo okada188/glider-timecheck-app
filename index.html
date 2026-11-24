@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>発航記録照合ツール</title>
+    <link rel="stylesheet" href="style.css?v=24">
+    <!-- SheetJS for Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>発航記録照合ツール</h1>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <!-- 紙のデータアップロード -->
+                <div class="upload-card">
+                    <div class="card-icon">📄</div>
+                    <h2>1. 紙のデータ (画像)</h2>
+                    <p>スマートフォンの写真やスキャン画像を選んでください。</p>
+                    <div class="pick-row">
+                        <div class="pick-col">
+                            <div class="pick-label">📁 ファイルから選ぶ</div>
+                            <input type="file" id="imageInput" accept="image/*" multiple>
+                        </div>
+                        <div class="pick-col">
+                            <div class="pick-label">📋 コピーして貼り付ける</div>
+                            <div id="pasteZone" class="paste-zone" contenteditable="true" inputmode="none"
+                                spellcheck="false" role="textbox" aria-label="画像の貼り付け欄(ここをクリックして Ctrl+V)"></div>
+                        </div>
+                    </div>
+                    <div id="imageThumbs" class="thumbs" style="display: none;"></div>
+                    <div id="imageStatus" class="status">未選択</div>
+                </div>
+
+                <!-- Excelデータアップロード -->
+                <div class="upload-card">
+                    <div class="card-icon">📊</div>
+                    <h2>2. Excelデータ (.xlsx / .csv)</h2>
+                    <p>比較元のExcelを、ファイルから選ぶか、Googleドライブの共有リンクを貼り付けてください。</p>
+                    <div class="pick-row">
+                        <div class="pick-col">
+                            <div class="pick-label">📁 ファイルから選ぶ</div>
+                            <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" multiple>
+                        </div>
+                        <div class="pick-col">
+                            <div class="pick-label">🔗 リンクを貼り付ける</div>
+                            <div class="link-zone">
+                                <input type="url" id="excelLinkInput" class="text-input" placeholder="Googleドライブの共有リンク"
+                                    autocomplete="off" spellcheck="false">
+                                <button type="button" id="excelLinkBtn" class="link-btn">読み込む</button>
+                                <div class="link-note" id="excelLinkNote">「リンクを知っている全員」で共有したファイルだけ読めます</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="excelStatus" class="status">未選択</div>
+                </div>
+            </div>
+
+            <!-- 手書きモデル用: 時刻欄の位置合わせ -->
+            <div class="align-section" id="alignSection" style="display: none;">
+                <h2>3. 時刻欄の位置合わせ</h2>
+                <ul class="align-help">
+                    <li>時刻欄の位置と行数は、写真を選ぶと<strong>自動で合います</strong>。</li>
+                    <li><strong class="c-red">赤い枠</strong>の中に時刻の字が入っているか確認します。ずれていたら、下のつまみで直します。</li>
+                    <li><strong class="c-green">緑の丸</strong>(四隅): 枠全体の位置と大きさを直します。</li>
+                    <li><strong class="c-orange">オレンジの四角</strong>(行の左端): その行だけを動かします。</li>
+                    <li><strong class="c-blue">青い線</strong>: 出発・到着・飛行時間の境目です。</li>
+                    <li>行数を変えると、枠が行の線に合わせて伸び縮みします。</li>
+                </ul>
+                <div id="alignContainer"></div>
+            </div>
+
+            <div class="action-section">
+                <button id="compareBtn" disabled>照合を開始する</button>
+                <div id="globalStatus" class="global-status">準備完了</div>
+            </div>
+
+            <div class="diagnostics" id="diagnostics" style="display: none;"></div>
+
+            <div class="result-section" id="resultSection" style="display: none;">
+                <h2>照合結果</h2>
+                <p class="result-legend">
+                    一番上に確認が必要な行を表示しています。その下に全部の行があります。同じ組の<strong>発航回数</strong>の行と<strong>Excelの行</strong>を上下に並べています。<span
+                        class="legend-mismatch">赤いマス</span>は紙とExcelで時間が違う項目です。赤いマスに<span
+                        class="legend-uncertain">黄色の枠</span>が付いているものは読み間違いの可能性があります。<span
+                        class="legend-uncertain">黄色いマス</span>は読み取りに自信がない項目です。紙に「-」がある行は、Excelでは飛ばしているので照合しません。</p>
+                <div class="summary" id="resultSummary"></div>
+
+                <div id="resultGroups"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 手書きモデル(学習済みの重み)と読み取り処理。どちらもこのフォルダ内のファイルで、外部には送信しない -->
+    <script src="model/cell_model.js?v=24"></script>
+    <script src="autogrid.js?v=24"></script>
+    <script src="cellreader.js?v=24"></script>
+    <!-- Google ログインの設定(空のままなら、ログインの機能は働かない) -->
+    <script src="google_config.js?v=24"></script>
+    <script src="app.js?v=24"></script>
+</body>
+
+</html>
