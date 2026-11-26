@@ -348,10 +348,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2500);
     };
 
+    // 位置合わせの画面で写真を回した時は、小さい見本も回した画像にする
+    const thumbRotated = new Map();
+    document.addEventListener('cellreader-rotate', (e) => {
+        const { file, thumb } = e.detail || {};
+        if (!file) return;
+        if (thumb) thumbRotated.set(file, thumb);
+        else thumbRotated.delete(file);
+        const i = imageFiles.indexOf(file);
+        const el = i >= 0 ? imageThumbs.querySelectorAll('.thumb img')[i] : null;
+        if (el) el.src = thumbRotated.get(file) || thumbUrls.get(file);
+    });
+
     const updateImageUi = (note) => {
         // 選んだ写真の小さい見本を並べる。隅の ✖ で1枚ずつ消せる
         thumbUrls.forEach((url, f) => {
-            if (!imageFiles.includes(f)) { URL.revokeObjectURL(url); thumbUrls.delete(f); }
+            if (!imageFiles.includes(f)) { URL.revokeObjectURL(url); thumbUrls.delete(f); thumbRotated.delete(f); }
         });
         imageThumbs.innerHTML = '';
         imageFiles.forEach((f, i) => {
@@ -359,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const box = document.createElement('div');
             box.className = 'thumb';
             const img = document.createElement('img');
-            img.src = thumbUrls.get(f);
+            img.src = thumbRotated.get(f) || thumbUrls.get(f);
             img.alt = `${i + 1}枚目`;
             const no = document.createElement('span');
             no.className = 'thumb-no';

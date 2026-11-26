@@ -446,6 +446,146 @@
         });
     }
 
+    // ---------- 写真の向き ----------
+    // スマホで貼った写真などは横向き(90度)や逆さ(180度)のことがある。表の線が見つかる向きを自動で選ぶ。
+    const ORIENT_CONF_CELLS = 4;   // 向きを比べる時にモデルで読むマスの数(多いほど確かだが遅い)
+    const ORIENT_OK = 0.78;        // 元の向きでこれ以上の自信なら、ほかの向きは試さない(正しい向き 0.83〜0.94、逆さ 0.50〜0.70 だった)
+
+    // 元の写真を deg 度(時計回り)回した canvas
+    function rotatedCanvas(src, deg) {
+        const w0 = src.naturalWidth || src.width;
+        const h0 = src.naturalHeight || src.height;
+        const side = deg % 180 !== 0;
+        const cv = document.createElement('canvas');
+        cv.width = side ? h0 : w0;
+        cv.height = side ? w0 : h0;
+        const ctx = cv.getContext('2d');
+        ctx.translate(cv.width / 2, cv.height / 2);
+        ctx.rotate(deg * Math.PI / 180);
+        ctx.drawImage(src, -w0 / 2, -h0 / 2);
+        return cv;
+    }
+
+    function grayOf(src) {
+        const w = src.naturalWidth || src.width;
+        const h = src.naturalHeight || src.height;
+        let cv = src;
+        if (!(src instanceof HTMLCanvasElement)) {
+            cv = document.createElement('canvas');
+            cv.width = w;
+            cv.height = h;
+            cv.getContext('2d').drawImage(src, 0, 0);
+        }
+        const data = cv.getContext('2d').getImageData(0, 0, w, h).data;
+        const gray = new Float32Array(w * h);
+        for (let k = 0; k < w * h; k++) {
+            gray[k] = Math.round((data[4 * k] * 299 + data[4 * k + 1] * 587 + data[4 * k + 2] * 114) / 1000);
+        }
+        return gray;
+    }
+
+    // 明るさの配列を deg 度(時計回り)回す(向きを探す時だけに使う。canvas を4回作るより軽い)
+    function rotateGray(g, w, h, deg) {
+        if (!deg) return { gray: g, w, h };
+        const side = deg % 180 !== 0;
+        const W = side ? h : w;
+        const H = side ? w : h;
+        const out = new Float32Array(W * H);
+        for (let y = 0; y < H; y++) {
+            for (let x = 0; x < W; x++) {
+                let sx;
+                let sy;
+                if (deg === 90) { sx = y; sy = h - 1 - x; }
+                else if (deg === 180) { sx = w - 1 - x; sy = h - 1 - y; }
+                else { sx = w - 1 - y; sy = x; }
+                out[y * W + x] = g[sy * w + sx];
+            }
+        }
+        return { gray: out, w: W, h: H };
+    }
+
+    // st を deg 度の向きにする(表示用の画像・明るさ・大きさを作り直し、枠は初期の位置に戻す)
+    function setOrientation(st, deg) {
+        st.rot = deg;
+        st.img = deg ? rotatedCanvas(st.orig, deg) : st.orig;
+        st.w = st.img.naturalWidth || st.img.width;
+        st.h = st.img.naturalHeight || st.img.height;
+        st.gray = grayOf(st.img);
+        st.corners = defaultCorners(st.w, st.h);
+        st.nRows = 20;
+        st.auto = null;
+        resetShift(st);
+        // 小さい見本(app.js の写真の一覧)も同じ向きにする
+        let thumb = null;
+        if (deg) {
+            const k = 160 / Math.max(st.w, st.h);
+            const cv = document.createElement('canvas');
+            cv.width = Math.max(1, Math.round(st.w * k));
+            cv.height = Math.max(1, Math.round(st.h * k));
+            cv.getContext('2d').drawImage(st.img, 0, 0, cv.width, cv.height);
+            thumb = cv.toDataURL('image/jpeg', 0.8);
+        }
+        document.dispatchEvent(new CustomEvent('cellreader-rotate', { detail: { file: st.file, rot: deg, thumb } }));
+    }
+
+    // 自動で合わせた枠の、最初の数マスをモデルで読んだ時の自信(0〜1)。逆さの写真だと低くなる
+    function orientConfidence(st) {
+        let sum = 0;
+        let cnt = 0;
+        let cells = 0;
+        for (let r = 0; r < st.nRows && cells < ORIENT_CONF_CELLS; r++) {
+            for (let c = 0; c < 3 && cells < ORIENT_CONF_CELLS; c++) {
+                const { img, blank } = extractCell(st, r, c);
+                if (blank) continue;
+                cells++;
+                forward(img, c).forEach((p) => {
+                    const m = Math.max(...p);
+                    if (Number.isFinite(m)) { sum += Math.exp(m); cnt++; }
+                });
+            }
+        }
+        return cnt ? sum / cnt : 0;
+    }
+
+    // 4つの向きで表の線を探し、見つかった向きが2つ以上なら、モデルの自信が高い向きを選ぶ
+    async function autoOrient(st) {
+        const g0 = grayOf(st.orig);
+        const w0 = st.orig.naturalWidth;
+        const h0 = st.orig.naturalHeight;
+        const confOf = (f) => orientConfidence({ gray: f.gray, w: f.w, h: f.h, nRows: f.a.nRows, corners: f.a.corners, shift: f.a.shift });
+        const found = [];
+        let pick = null;
+        for (const deg of [0, 90, 180, 270]) {
+            await nextFrame();
+            const r = rotateGray(g0, w0, h0, deg);
+            let a = null;
+            try { a = window.AutoGrid ? window.AutoGrid.detect(r.gray, r.w, r.h) : null; } catch (err) { console.warn(err); }
+            if (!(a && a.ok)) continue;
+            const f = { deg, a, ...r };
+            if (deg === 0) {
+                // ふつうの写真は元の向きで読めるので、ここで決める(ほかの向きを試す時間を省く)
+                f.conf = confOf(f);
+                if (f.conf >= ORIENT_OK) { pick = f; break; }
+            }
+            found.push(f);
+        }
+        if (!pick && found.length === 1) pick = found[0];
+        if (!pick && found.length > 1) {
+            let best = -Infinity;
+            for (const f of found) {
+                await nextFrame();
+                const conf = (f.conf !== undefined ? f.conf : confOf(f)) + (f.deg === 0 ? 0.03 : 0);   // 同じくらいなら、元の向きを選ぶ
+                if (conf > best) { best = conf; pick = f; }
+            }
+        }
+        setOrientation(st, pick ? pick.deg : 0);
+        const msg = runAuto(st);
+        const turned = st.rot === 90 ? '写真が横向きだったので、右に90度回しました。'
+            : st.rot === 180 ? '写真が逆さだったので、180度回しました。'
+                : st.rot === 270 ? '写真が横向きだったので、左に90度回しました。' : '';
+        return turned + msg;
+    }
+
     function draw(st) {
         const cv = st.canvas;
         const ctx = cv.getContext('2d');
@@ -567,21 +707,8 @@
         const base = states.length;
         for (let i = 0; i < files.length; i++) {
             const { img, url } = await loadImage(files[i]);
-            const w = img.naturalWidth;
-            const h = img.naturalHeight;
-            const off = document.createElement('canvas');
-            off.width = w;
-            off.height = h;
-            const octx = off.getContext('2d');
-            octx.drawImage(img, 0, 0);
-            const data = octx.getImageData(0, 0, w, h).data;
-            const gray = new Float32Array(w * h);
-            for (let k = 0; k < w * h; k++) {
-                gray[k] = Math.round((data[4 * k] * 299 + data[4 * k + 1] * 587 + data[4 * k + 2] * 114) / 1000);
-            }
-            const st = { file: files[i], img, url, w, h, gray, corners: defaultCorners(w, h), nRows: 20, zoom: 1 };
-            resetShift(st);
-            const autoMsg = runAuto(st);
+            const st = { file: files[i], orig: img, url, zoom: 1 };
+            const autoMsg = await autoOrient(st);   // 向きを決めて、自動で位置を合わせる
 
             const card = document.createElement('div');
             card.className = 'aligner-card';
@@ -601,6 +728,10 @@
             const autoBtn = document.createElement('button');
             autoBtn.type = 'button';
             autoBtn.textContent = '自動で合わせ直す';
+            const rotBtn = document.createElement('button');
+            rotBtn.type = 'button';
+            rotBtn.textContent = '↻ 90度回す';
+            rotBtn.title = '写真の向きが違う時に押します(右に90度ずつ回ります)';
             const zoomLabel = document.createElement('label');
             zoomLabel.textContent = '拡大 ';
             const zoomInput = document.createElement('input');
@@ -610,7 +741,7 @@
             zoomInput.step = '0.25';
             zoomInput.value = '1';
             zoomLabel.appendChild(zoomInput);
-            ctrl.append(rowsLabel, autoBtn, zoomLabel);
+            ctrl.append(rowsLabel, autoBtn, rotBtn, zoomLabel);
             const status = document.createElement('p');
             status.className = 'aligner-status' + (st.auto ? '' : ' aligner-status-warn');
             status.textContent = autoMsg;
@@ -621,7 +752,7 @@
             wrap.appendChild(canvas);
             card.append(status, ctrl, wrap);
             container.appendChild(card);
-            Object.assign(st, { canvas, wrap, card, titleEl: card.firstChild, controls: [rowsInput, autoBtn, zoomInput] });
+            Object.assign(st, { canvas, wrap, card, titleEl: card.firstChild, controls: [rowsInput, autoBtn, rotBtn, zoomInput] });
             attachDrag(st);
             rowsInput.addEventListener('change', () => {
                 const n = Math.max(1, Math.min(40, Number(rowsInput.value) || 20));
@@ -639,6 +770,13 @@
                 status.className = 'aligner-status' + (st.auto ? '' : ' aligner-status-warn');
                 rowsInput.value = String(st.nRows);
                 draw(st);
+            });
+            rotBtn.addEventListener('click', () => {
+                setOrientation(st, (st.rot + 90) % 360);
+                status.textContent = (st.rot ? `写真を回しました(元の写真から右に${st.rot}度)。` : '写真を元の向きに戻しました。') + runAuto(st);
+                status.className = 'aligner-status' + (st.auto ? '' : ' aligner-status-warn');
+                rowsInput.value = String(st.nRows);
+                setZoom(st, st.zoom || 1);
             });
             zoomInput.addEventListener('input', () => setZoom(st, Number(zoomInput.value)));
             states.push(st);

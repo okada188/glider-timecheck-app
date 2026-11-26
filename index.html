@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>発航記録照合ツール</title>
-    <link rel="stylesheet" href="style.css?v=24">
+    <link rel="stylesheet" href="style.css?v=27">
     <!-- SheetJS for Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -72,6 +72,7 @@
                     <li><strong class="c-orange">オレンジの四角</strong>(行の左端): その行だけを動かします。</li>
                     <li><strong class="c-blue">青い線</strong>: 出発・到着・飛行時間の境目です。</li>
                     <li>行数を変えると、枠が行の線に合わせて伸び縮みします。</li>
+                    <li>写真が横向きや逆さの時は、自動で回します。向きが違う時は「↻ 90度回す」を押します。</li>
                 </ul>
                 <div id="alignContainer"></div>
             </div>
@@ -98,12 +99,12 @@
     </div>
 
     <!-- 手書きモデル(学習済みの重み)と読み取り処理。どちらもこのフォルダ内のファイルで、外部には送信しない -->
-    <script src="model/cell_model.js?v=24"></script>
-    <script src="autogrid.js?v=24"></script>
-    <script src="cellreader.js?v=24"></script>
+    <script src="model/cell_model.js?v=27"></script>
+    <script src="autogrid.js?v=27"></script>
+    <script src="cellreader.js?v=27"></script>
     <!-- Google ログインの設定(空のままなら、ログインの機能は働かない) -->
-    <script src="google_config.js?v=24"></script>
-    <script src="app.js?v=24"></script>
+    <script src="google_config.js?v=27"></script>
+    <script src="app.js?v=27"></script>
 </body>
 
 </html>
