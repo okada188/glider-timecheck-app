@@ -715,7 +715,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (paper && excel) {
             item.mismatchDep = parseTimeToMinutes(paper.departure) !== parseTimeToMinutes(excel.departure);
             item.mismatchArr = parseTimeToMinutes(paper.arrival) !== parseTimeToMinutes(excel.arrival);
-            item.mismatchFlt = parseTimeToMinutes(paper.flight_time) !== parseTimeToMinutes(excel.flight_time);
+            // 飛行時間は Excel で出発・到着から計算されるので、比べない(表には出す)。紙の飛行時間は読み取りの計算チェックにだけ使う
+            item.mismatchFlt = false;
             const mismatch = item.mismatchDep || item.mismatchArr || item.mismatchFlt;
             item.status = mismatch ? 'Mismatch' : 'Match';
             item.statusText = mismatch ? '不一致' : '一致';
@@ -1033,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 位置合わせ画面で合わせた枠からマスを切り出して、手書きモデルで読む
             for (let i = 0; i < imageFiles.length; i++) {
                 const parsed = await window.CellReader.read(i, (done, total) => {
-                    globalStatus.textContent = `手書きモデルで読み取り中... (${i + 1}/${imageFiles.length} 枚目、${done}/${total} 行)`;
+                    globalStatus.textContent = `読み取り中... (${i + 1}/${imageFiles.length} 枚目、${done}/${total} 行)`;
                 });
                 parsed.rows.forEach((row) => {
                     row.imageIndex = i;

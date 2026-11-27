@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>発航記録照合ツール</title>
-    <link rel="stylesheet" href="style.css?v=27">
+    <link rel="stylesheet" href="style.css?v=30">
     <!-- SheetJS for Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -65,15 +65,6 @@
             <!-- 手書きモデル用: 時刻欄の位置合わせ -->
             <div class="align-section" id="alignSection" style="display: none;">
                 <h2>3. 時刻欄の位置合わせ</h2>
-                <ul class="align-help">
-                    <li>時刻欄の位置と行数は、写真を選ぶと<strong>自動で合います</strong>。</li>
-                    <li><strong class="c-red">赤い枠</strong>の中に時刻の字が入っているか確認します。ずれていたら、下のつまみで直します。</li>
-                    <li><strong class="c-green">緑の丸</strong>(四隅): 枠全体の位置と大きさを直します。</li>
-                    <li><strong class="c-orange">オレンジの四角</strong>(行の左端): その行だけを動かします。</li>
-                    <li><strong class="c-blue">青い線</strong>: 出発・到着・飛行時間の境目です。</li>
-                    <li>行数を変えると、枠が行の線に合わせて伸び縮みします。</li>
-                    <li>写真が横向きや逆さの時は、自動で回します。向きが違う時は「↻ 90度回す」を押します。</li>
-                </ul>
                 <div id="alignContainer"></div>
             </div>
 
@@ -90,7 +81,7 @@
                     一番上に確認が必要な行を表示しています。その下に全部の行があります。同じ組の<strong>発航回数</strong>の行と<strong>Excelの行</strong>を上下に並べています。<span
                         class="legend-mismatch">赤いマス</span>は紙とExcelで時間が違う項目です。赤いマスに<span
                         class="legend-uncertain">黄色の枠</span>が付いているものは読み間違いの可能性があります。<span
-                        class="legend-uncertain">黄色いマス</span>は読み取りに自信がない項目です。紙に「-」がある行は、Excelでは飛ばしているので照合しません。</p>
+                        class="legend-uncertain">黄色いマス</span>は読み取りに自信がない項目です。紙に「-」がある行は、Excelでは飛ばしているので照合しません。飛行時間はExcelで計算されるので、比べずに表示だけしています。</p>
                 <div class="summary" id="resultSummary"></div>
 
                 <div id="resultGroups"></div>
@@ -99,12 +90,12 @@
     </div>
 
     <!-- 手書きモデル(学習済みの重み)と読み取り処理。どちらもこのフォルダ内のファイルで、外部には送信しない -->
-    <script src="model/cell_model.js?v=27"></script>
-    <script src="autogrid.js?v=27"></script>
-    <script src="cellreader.js?v=27"></script>
+    <script src="model/cell_model.js?v=30"></script>
+    <script src="autogrid.js?v=30"></script>
+    <script src="cellreader.js?v=30"></script>
     <!-- Google ログインの設定(空のままなら、ログインの機能は働かない) -->
-    <script src="google_config.js?v=27"></script>
-    <script src="app.js?v=27"></script>
+    <script src="google_config.js?v=30"></script>
+    <script src="app.js?v=30"></script>
 </body>
 
 </html>

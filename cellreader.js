@@ -661,15 +661,33 @@
         cv.addEventListener('pointerdown', (e) => {
             const [x, y] = pos(e);
             const h = handleAt(st, x, y);
-            if (!h) return;
-            st.drag = { ...h, x, y };
+            // つまみ以外の所: 見る場所を動かす(拡大した写真の中を動く。端まで来たらページ全体を動かす)
+            st.drag = h ? { ...h, x, y } : { type: 'pan', cx: e.clientX, cy: e.clientY };
             cv.setPointerCapture(e.pointerId);
+            if (!h) cv.style.cursor = 'grabbing';
             e.preventDefault();
         });
         cv.addEventListener('pointermove', (e) => {
             const [x, y] = pos(e);
             if (!st.drag) {
-                cv.style.cursor = handleAt(st, x, y) ? 'grab' : 'default';
+                const canMove = st.wrap.scrollWidth > st.wrap.clientWidth + 1 || st.wrap.scrollHeight > st.wrap.clientHeight + 1;
+                cv.style.cursor = handleAt(st, x, y) ? 'grab' : (canMove ? 'move' : 'default');
+                return;
+            }
+            if (st.drag.type === 'pan') {
+                const dx = e.clientX - st.drag.cx;
+                const dy = e.clientY - st.drag.cy;
+                st.drag.cx = e.clientX;
+                st.drag.cy = e.clientY;
+                const w = st.wrap;
+                const sl = w.scrollLeft;
+                const stp = w.scrollTop;
+                w.scrollLeft = sl - dx;
+                w.scrollTop = stp - dy;
+                // 写真の端まで来て動かせなかった分は、ページ全体を動かす(スマホで写真の上をなぞってもページが動くように)
+                const restX = -dx - (w.scrollLeft - sl);
+                const restY = -dy - (w.scrollTop - stp);
+                if (Math.abs(restX) > 0.5 || Math.abs(restY) > 0.5) window.scrollBy(restX, restY);
                 return;
             }
             const dx = (x - st.drag.x) / st.scale;
@@ -686,15 +704,34 @@
             st.dirty = true;
             draw(st);
         });
-        const end = () => { if (st.drag) { st.drag = null; draw(st); } };
+        const end = () => {
+            if (!st.drag) return;
+            const wasPan = st.drag.type === 'pan';
+            st.drag = null;
+            if (wasPan) cv.style.cursor = 'move';
+            else draw(st);
+        };
         cv.addEventListener('pointerup', end);
         cv.addEventListener('pointercancel', end);
     }
 
-    function setZoom(st, z) {
+    // keepCenter: 今見ている所の真ん中を、拡大した後も真ん中にする(写真を回した時などは false)
+    function setZoom(st, z, keepCenter = true) {
+        const w = st.wrap;
+        const old = st.scale;
+        let cx = null;
+        let cy = null;
+        if (keepCenter && old) {
+            cx = (w.scrollLeft + w.clientWidth / 2) / old;
+            cy = (w.scrollTop + w.clientHeight / 2) / old;
+        }
         st.zoom = z;
-        st.scale = (st.wrap.clientWidth || 700) / st.w * z;
+        st.scale = (w.clientWidth || 700) / st.w * z;
         draw(st);
+        if (cx !== null) {
+            w.scrollLeft = cx * st.scale - w.clientWidth / 2;
+            w.scrollTop = cy * st.scale - w.clientHeight / 2;
+        }
     }
 
     // files の位置合わせ画面を作る。opts.append = true なら、今ある写真の後ろに足す(前の写真の位置合わせは残す)
@@ -776,7 +813,7 @@
                 status.textContent = (st.rot ? `写真を回しました(元の写真から右に${st.rot}度)。` : '写真を元の向きに戻しました。') + runAuto(st);
                 status.className = 'aligner-status' + (st.auto ? '' : ' aligner-status-warn');
                 rowsInput.value = String(st.nRows);
-                setZoom(st, st.zoom || 1);
+                setZoom(st, st.zoom || 1, false);
             });
             zoomInput.addEventListener('input', () => setZoom(st, Number(zoomInput.value)));
             states.push(st);
